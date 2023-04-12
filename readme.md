@@ -14,7 +14,7 @@ An Arduino Uno is set up as a class-compliant MIDI device (easier said than done
 # ARDUINO USB FIRMWARE #
 The Arduino Uno is not a class-compliant MIDI device by default. The chip that interfaces from the USB port to the serial connection on the main microcontroller (ATmega16U2) must be reflashed to have the Arduino show up as a MIDI device when plugged in via USB. This presents a problem during development: when the Arduino is in "MIDI mode", it is no longer visible to the Arduino IDE on a serial port and cannot be programmed over USB. Therefore, it was necessary to switch back and forth. Luckily, smart people have figured out how to do this in a way that makes it *almost* not a pain in the ass.
 
-During development, I used the [mocoLUFA](https://github.com/kuwatay/mocolufa) [firmware](../USB MIDI/dualMoco.hex) which allows switching between MIDI and serial modes by connecting certain pins while power cycling the Arduino.
+During development, I used the [mocoLUFA](https://github.com/kuwatay/mocolufa) [firmware](../USB_MIDI/dualMoco.hex) which allows switching between MIDI and serial modes by connecting certain pins while power cycling the Arduino.
 
 # MIDI and CONTROL SURFACE PROTOCOLS #
 
