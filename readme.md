@@ -14,7 +14,9 @@ An Arduino Uno is set up as a class-compliant MIDI device (easier said than done
 # ARDUINO USB FIRMWARE #
 The Arduino Uno is not a class-compliant MIDI device by default. The chip that interfaces from the USB port to the serial connection on the main microcontroller (ATmega16U2) must be reflashed to have the Arduino show up as a MIDI device when plugged in via USB. This presents a problem during development: when the Arduino is in "MIDI mode", it is no longer visible to the Arduino IDE on a serial port and cannot be programmed over USB. Therefore, it was necessary to switch back and forth. Luckily, smart people have figured out how to do this in a way that makes it *almost* not a pain in the ass.
 
-During development, I used the [mocoLUFA](https://github.com/kuwatay/mocolufa) [firmware](../USB_MIDI/dualMoco.hex) which allows switching between MIDI and serial modes by connecting certain pins while power cycling the Arduino.
+During development, I used the [mocoLUFA](https://github.com/kuwatay/mocolufa) firmware which allows switching between MIDI and serial modes by connecting certain pins while power cycling the Arduino. Later, I used the [USBMidiKliK](https://github.com/TheKikGen/USBMidiKliK) version which allowed me to customize the name of the MIDI device as it appears to DAWs.
+
+To reflash the ATmega16U2 chip, I used the `dfu-programmer` command line interface, installed via Homebrew (but it can also be installed from [here](https://github.com/dfu-programmer/dfu-programmer)).
 
 # MIDI and CONTROL SURFACE PROTOCOLS #
 
