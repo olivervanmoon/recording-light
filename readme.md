@@ -1,4 +1,6 @@
-OvM Recording Lights development/construction notes
+READ ME
+
+It all started when Spencer's mom gave us what seemed like a simple present—a "RECORDING" light for the DazeyChain Records studio. The light, in fact, was quite simple. Just a strip of LEDs rated for 12 volts.
 
 MIDI and CONTROL SURFACE PROTOCOLS
 
