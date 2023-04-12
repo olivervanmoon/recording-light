@@ -54,10 +54,10 @@ There are several great libraries for Arduino for creating control surfaces and 
 	- For use with Logic Pro X and Ableton Live (or others).
 	- DAW sends recording on and off messages on a single MIDI note:
 		- Channel 1, Note B6 aka note number 95. Full velocity (127 aka 0x7F) for on, zero velocity (0 aka 0x00) for off. (This data can be used to configure the "Recording Light" type of control surface in Logic Pro X, although Mackie Control also works.)
-	| message | hex command |
-	|---|---|
-	| ON | 90 5F 7F |
-	| OFF| 90 5F 00 |
+	 message | hex command 
+	---|---
+	 ON | 90 5F 7F 
+	 OFF| 90 5F 00 
 - "M-Audio Keyboard":
 	- For use with Pro Tools (not sure if anyone else needs this).
 	- DAW sends record enable and playing messages on two different MIDI notes. When Pro Tools is both record-enabled and playing, it is recording:
