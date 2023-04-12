@@ -73,6 +73,7 @@ There are several great libraries for Arduino for creating control surfaces and 
 	  
 - "M-Audio Keyboard"
 	- For use with Pro Tools (not sure if any other DAW else needs this).
+	- Shout out [this person](https://github.com/dupontgu/pro_tools_iot_sync) and [this video](https://www.youtube.com/watch?v=q4VlN0nZlpw) for the tip on using "M-Audio Keyboard".
 	- DAW sends record enable and playing messages on two different MIDI notes. When Pro Tools is both record-enabled and playing, it is recording.
 		
 		| message		| hex command 	|
@@ -81,3 +82,8 @@ There are several great libraries for Arduino for creating control surfaces and 
 		| PLAY OFF		| B0 75 00	|
 		| RECORD ENABLE ON	| B0 76 7F	|
 		| RECORD ENABLE OFF	| B0 76 00	|
+		
+## Other notes and ideas ##
+- Before deciding to deal with the MIDI data myself, I was experimenting with the [Control Surface](https://github.com/tttapa/Control-Surface) library for Arduino which is incredibly powerful.
+- Mackie's older HUI protocol (which Pro Tools uses rather than the newer Mackie Control) absolutely sucks. I tried to make this work for a while until I figured out the "M-Audio Keyboard" situation.
+- I'm excited to do some recording!
