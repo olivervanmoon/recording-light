@@ -55,7 +55,7 @@ There are several great libraries for Arduino for creating control surfaces and 
 	- DAW sends recording on and off messages on a single MIDI note:
 		- Channel 1, Note B6 aka note number 95. Full velocity (127 aka 0x7F) for on, zero velocity (0 aka 0x00) for off. (This data can be used to configure the "Recording Light" type of control surface in Logic Pro X, although Mackie Control also works.)
 	 message | hex command 
-	---|---
+	--- | ---
 	 ON | 90 5F 7F 
 	 OFF| 90 5F 00 
 - "M-Audio Keyboard":
