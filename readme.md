@@ -1,4 +1,4 @@
-# Manual (how to set up)
+# DAW setup instructions
 1. Plug it in.
 2. Add the recording light MIDI device as a control surface in your DAW.
 
