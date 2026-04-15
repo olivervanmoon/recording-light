@@ -78,10 +78,12 @@ Pro Tools uses Mackie's older HUI protocol rather than Mackie Control. HUI encod
 | Ping from Pro Tools | `90 00 00` |
 | Pong from device | `90 00 7F` |
 
-**Recording state** is sent as a zone select followed by a port+state byte. The transport zone is `0x0E` and the Record LED port is `5`. Bit 6 of the port byte carries the on/off state.
+**Recording state** is sent as a zone select followed by a port+state byte. The transport zone is `0x0E`, PLAY is port `4`, RECORD is port `5`. Bit 6 of the port byte carries the on/off state. The firmware requires **both** PLAY and RECORD to be active before lighting up — RECORD alone means the transport is armed but not yet rolling.
 
 | message | hex |
 | --- | --- |
+| PLAY ON | `B0 0C 0E` then `B0 2C 44` |
+| PLAY OFF | `B0 0C 0E` then `B0 2C 04` |
 | Record ON | `B0 0C 0E` then `B0 2C 45` |
 | Record OFF | `B0 0C 0E` then `B0 2C 05` |
 
@@ -117,7 +119,7 @@ Protocol logic can be tested on a desktop machine (no Arduino hardware needed) u
 g++ -std=c++11 -I tests tests/test_protocols.cpp -o tests/run_tests && ./tests/run_tests
 ```
 
-This runs 16 test functions (18 assertions) covering HUI keepalive, recording on/off, zone/port decoding, Mackie Control, M-Audio Keyboard, and protocol isolation.
+This runs 19 test functions (22 assertions) covering HUI keepalive, recording on/off, zone/port decoding, armed-vs-recording distinction, Mackie Control, M-Audio Keyboard, and protocol isolation.
 
 ## Other notes and ideas ##
 - Before deciding to deal with the MIDI data myself, I was experimenting with the [Control Surface](https://github.com/tttapa/Control-Surface) library for Arduino which is incredibly powerful.

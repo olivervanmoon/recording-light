@@ -17,11 +17,10 @@ void reset() { Serial.reset(); resetProtocolState(); }
 void test_hui_ping_sends_pong() {
   reset();
   byte msg[] = {0x90, 0x00, 0x00};
-  checkHUI(msg);
+  bool result = checkHUI(msg);
   check("HUI ping: pong (90 00 7F) written to serial",
         Serial.writeBuf == std::vector<byte>{0x90, 0x00, 0x7F});
-  check("HUI ping: recording state unchanged",
-        recordingFlagHUI == false);
+  check("HUI ping: recording state unchanged", result == false);
 }
 
 void test_hui_record_only_not_recording() {

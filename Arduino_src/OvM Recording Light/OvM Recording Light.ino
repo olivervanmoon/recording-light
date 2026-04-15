@@ -18,6 +18,7 @@ void setup() {
   pinMode(outputPin, OUTPUT);
   setLight(false);
   Serial.begin(MIDIBAUD);
+  Serial.setTimeout(10);  // don't block >10ms waiting for bytes 2-3 of a message
 }
 
 void loop() {
