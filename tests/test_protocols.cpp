@@ -24,32 +24,65 @@ void test_hui_ping_sends_pong() {
         recordingFlagHUI == false);
 }
 
-void test_hui_record_on() {
+void test_hui_record_only_not_recording() {
   reset();
-  byte zone[] = {0xB0, 0x0C, 0x0E};  // transport zone select
-  byte port[] = {0xB0, 0x2C, 0x45};  // port 5, bit6 set = ON
+  byte zone[] = {0xB0, 0x0C, 0x0E};
+  byte port[] = {0xB0, 0x2C, 0x45};  // RECORD on
   checkHUI(zone);
-  checkHUI(port);
-  check("HUI record ON (zone 0E, port 45)", recordingFlagHUI == true);
+  bool result = checkHUI(port);
+  check("HUI record-only (armed, not playing) → not recording", result == false);
+}
+
+void test_hui_play_only_not_recording() {
+  reset();
+  byte zone[] = {0xB0, 0x0C, 0x0E};
+  byte port[] = {0xB0, 0x2C, 0x44};  // PLAY on
+  checkHUI(zone);
+  bool result = checkHUI(port);
+  check("HUI play-only (not in record mode) → not recording", result == false);
+}
+
+void test_hui_play_and_record_recording() {
+  reset();
+  byte zoneA[] = {0xB0, 0x0C, 0x0E};
+  byte play[]  = {0xB0, 0x2C, 0x44};  // PLAY on
+  byte zoneB[] = {0xB0, 0x0C, 0x0E};
+  byte rec[]   = {0xB0, 0x2C, 0x45};  // RECORD on
+  checkHUI(zoneA); checkHUI(play);
+  checkHUI(zoneB); bool result = checkHUI(rec);
+  check("HUI play + record → recording", result == true);
 }
 
 void test_hui_record_off() {
   reset();
+  playingFlagHUI   = true;  // simulate were-recording state
   recordingFlagHUI = true;
-  byte zone[] = {0xB0, 0x0C, 0x0E};  // transport zone select
-  byte port[] = {0xB0, 0x2C, 0x05};  // port 5, bit6 clear = OFF
+  byte zone[] = {0xB0, 0x0C, 0x0E};
+  byte port[] = {0xB0, 0x2C, 0x05};  // RECORD off
   checkHUI(zone);
-  checkHUI(port);
-  check("HUI record OFF (zone 0E, port 05)", recordingFlagHUI == false);
+  bool result = checkHUI(port);
+  check("HUI record OFF (zone 0E, port 05)", result == false);
 }
 
-void test_hui_non_record_port_unchanged() {
+void test_hui_play_port_updates_play_flag() {
   reset();
-  byte zone[] = {0xB0, 0x0C, 0x0E};  // transport zone
-  byte port[] = {0xB0, 0x2C, 0x44};  // port 4 = PLAY, not RECORD
+  byte zone[] = {0xB0, 0x0C, 0x0E};
+  byte port[] = {0xB0, 0x2C, 0x44};  // PLAY on
   checkHUI(zone);
   checkHUI(port);
-  check("HUI PLAY port: recording state unchanged", recordingFlagHUI == false);
+  check("HUI PLAY port: playingFlagHUI set",         playingFlagHUI   == true);
+  check("HUI PLAY port: recordingFlagHUI unchanged",  recordingFlagHUI == false);
+}
+
+void test_hui_stop_clears_recording() {
+  reset();
+  playingFlagHUI   = true;  // were recording
+  recordingFlagHUI = true;
+  byte zone[] = {0xB0, 0x0C, 0x0E};
+  byte port[] = {0xB0, 0x2C, 0x04};  // PLAY off
+  checkHUI(zone);
+  bool result = checkHUI(port);
+  check("HUI PLAY off while recording → not recording", result == false);
 }
 
 void test_hui_wrong_zone_ignored() {
@@ -159,9 +192,12 @@ void test_hui_ping_does_not_trigger_mackie() {
 int main() {
   printf("── HUI ──────────────────────────────────────────\n");
   test_hui_ping_sends_pong();
-  test_hui_record_on();
+  test_hui_record_only_not_recording();
+  test_hui_play_only_not_recording();
+  test_hui_play_and_record_recording();
   test_hui_record_off();
-  test_hui_non_record_port_unchanged();
+  test_hui_stop_clears_recording();
+  test_hui_play_port_updates_play_flag();
   test_hui_wrong_zone_ignored();
   test_hui_zone_resets_after_port();
 
