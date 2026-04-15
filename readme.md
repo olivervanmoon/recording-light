@@ -4,9 +4,11 @@
 
 	| DAW		| control surface type/protocol 	|
 	| --- 		| ---		|
-	| Pro Tools	| M-Audio Keyboard |
+	| Pro Tools	| HUI |
 	| Logic Pro 	| Mackie Control |
 	| Ableton Live 	| Mackie Control |
+
+**Pro Tools note:** HUI is available at **Setup → Peripherals → MIDI Controllers → HUI**. Older Pro Tools installations (pre-2023.x) can use "M-Audio Keyboard" instead, which was the original workaround before HUI support was added to this firmware.
 
 # Development notes #
 
@@ -61,29 +63,65 @@ Later, after finishing the Arduino program, I discovered the [USBMidiKliK](https
 
 ## MIDI and CONTROL SURFACE PROTOCOLS ##
 
-There are several great libraries for Arduino for creating control surfaces and dealing with MIDI messages, but I ended up writing my own code to parse bytes from the serial buffer. It was quite frustrating to find out that Pro Tools offers a very limited number of options for interfacing with control surfaces, and these options do not seem to overlap well with Logic Pro and Ableton Live. To make the Arduino work with all the DAWs I required, I needed to implement two different protocols of receiving a recording message via MIDI:
-- "Mackie Control"
-	- For use with Logic Pro X and Ableton Live (and probably others).
-	- DAW sends recording on and off messages on a single MIDI note: Channel 1, Note B6 aka note number 95. Full velocity (127 aka 0x7F) for on, zero velocity (0 aka 0x00) for off. (This data can be used to configure the "Recording Light" type of control surface in Logic Pro X, although Mackie Control also works.)
-	
-		| message 		| hex command	|
-		| --- 			| --- 		|
-		| ON 			| 90 5F 7F 	|
-		| OFF			| 90 5F 00 	|
-	  
-- "M-Audio Keyboard"
-	- For use with Pro Tools (not sure if any other DAW else needs this).
-	- Shout out [this person](https://github.com/dupontgu/pro_tools_iot_sync) and [this video](https://www.youtube.com/watch?v=q4VlN0nZlpw) for the tip on using "M-Audio Keyboard".
-	- DAW sends record enable and playing messages on two different MIDI notes. When Pro Tools is both record-enabled and playing, it is recording.
-		
-		| message		| hex command 	|
-		| ---			| ---		|
-		| PLAY ON 		| B0 75 7F	|
-		| PLAY OFF		| B0 75 00	|
-		| RECORD ENABLE ON	| B0 76 7F	|
-		| RECORD ENABLE OFF	| B0 76 00	|
-		
+There are several great libraries for Arduino for creating control surfaces and dealing with MIDI messages, but I ended up writing my own code to parse bytes from the serial buffer. The protocol logic lives in `protocols.h` and the Arduino-specific setup and loop is in `OvM Recording Light.ino`.
+
+Three protocols are implemented. The device automatically handles whichever one the connected DAW happens to send — there are no byte collisions between them so they coexist safely.
+
+### HUI (Pro Tools, modern) ###
+
+Pro Tools uses Mackie's older HUI protocol rather than Mackie Control. HUI encodes transport button state as paired Control Change messages and requires the device to reply to a keepalive ping or Pro Tools reports it as disconnected.
+
+**Keepalive (must reply within ~1 second):**
+
+| message | hex |
+| --- | --- |
+| Ping from Pro Tools | `90 00 00` |
+| Pong from device | `90 00 7F` |
+
+**Recording state** is sent as a zone select followed by a port+state byte. The transport zone is `0x0E`, PLAY is port `4`, RECORD is port `5`. Bit 6 of the port byte carries the on/off state. The firmware requires **both** PLAY and RECORD to be active before lighting up — RECORD alone means the transport is armed but not yet rolling.
+
+| message | hex |
+| --- | --- |
+| PLAY ON | `B0 0C 0E` then `B0 2C 44` |
+| PLAY OFF | `B0 0C 0E` then `B0 2C 04` |
+| Record ON | `B0 0C 0E` then `B0 2C 45` |
+| Record OFF | `B0 0C 0E` then `B0 2C 05` |
+
+Pro Tools also sends SysEx messages for display and LED updates (`F0 00 00 66 ... F7`). These are flushed from the buffer without being parsed.
+
+### Mackie Control (Logic Pro X, Ableton Live) ###
+
+Mackie Control is straightforward. The DAW sends recording on and off messages on a single MIDI note: Channel 1, Note B6 (note number 95, `0x5F`). Full velocity (`0x7F`) for on, zero velocity (`0x00`) for off.
+
+| message | hex |
+| --- | --- |
+| ON | `90 5F 7F` |
+| OFF | `90 5F 00` |
+
+### M-Audio Keyboard (legacy Pro Tools, pre-2023.x) ###
+
+This was the original workaround before HUI was implemented here. Pro Tools 2023.x removed the "M-Audio Keyboard" control surface option, but older installations can still use this. Shout out [this person](https://github.com/dupontgu/pro_tools_iot_sync) and [this video](https://www.youtube.com/watch?v=q4VlN0nZlpw) for the tip.
+
+The DAW sends play and record-enable on two separate CCs. When both are active simultaneously, Pro Tools is recording.
+
+| message | hex |
+| --- | --- |
+| PLAY ON | `B0 75 7F` |
+| PLAY OFF | `B0 75 00` |
+| RECORD ENABLE ON | `B0 76 7F` |
+| RECORD ENABLE OFF | `B0 76 00` |
+
+## Testing ##
+
+Protocol logic can be tested on a desktop machine (no Arduino hardware needed) using a mocked `Serial` object:
+
+```
+g++ -std=c++11 -I tests tests/test_protocols.cpp -o tests/run_tests && ./tests/run_tests
+```
+
+This runs 19 test functions (22 assertions) covering HUI keepalive, recording on/off, zone/port decoding, armed-vs-recording distinction, Mackie Control, M-Audio Keyboard, and protocol isolation.
+
 ## Other notes and ideas ##
 - Before deciding to deal with the MIDI data myself, I was experimenting with the [Control Surface](https://github.com/tttapa/Control-Surface) library for Arduino which is incredibly powerful.
-- Mackie's older HUI protocol (which Pro Tools uses rather than the newer Mackie Control) absolutely sucks. I tried to make this work for a while until I figured out the "M-Audio Keyboard" situation.
+- HUI absolutely sucks. I tried to make it work, gave up, found the M-Audio Keyboard workaround, and years later Pro Tools removed M-Audio Keyboard and forced me to implement HUI properly anyway.
 - I'm excited to do some recording!
